@@ -10,7 +10,6 @@ logging.config.dictConfig(LOGGING)
 test_log = logging.getLogger('test')
 test_log.info("成功调用！！！")
 
-
 async def main():
     user_ids = [1, 2, 3]
     start = time.perf_counter()
