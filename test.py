@@ -17,5 +17,6 @@ try:
     latest_block_number = w3.eth.block_number
     print(f"✅ The latest block number on Ethereum is: {latest_block_number}")
 
+
 except Exception as e:
     print(f"An error occurred: {e}")
