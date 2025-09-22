@@ -7,7 +7,7 @@ import random
 
 logging.config.dictConfig(LOGGING)
 
-test_log = logging.getLogger('test')
+test_log = logging.getLogger('web3')
 test_log.info("成功调用！！！")
 
 
