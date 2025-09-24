@@ -1,11 +1,10 @@
 import asyncio
 import web3
 from web3 import *
-import logging.config
-from setting.setting import LOGGING
 
-logging.config.dictConfig(LOGGING)
-logger = logging.getLogger('web3')
+
+
+
 
 URL = "https://eth-mainnet.g.alchemy.com/v2/JEJmfRm0uQhy2nfe-Ff0-"
 w3 = web3.AsyncWeb3(AsyncWeb3.AsyncHTTPProvider(URL))
@@ -15,7 +14,7 @@ async def fetch_block_and_print_tx_count():
         latest_block_number = await w3.eth.get_block_number()
         block = await w3.eth.get_block(latest_block_number)
         tx_count = len(block["transactions"])
-        logger.info(f"最新区块号: {latest_block_number}, 交易数量: {tx_count}")
+        print(f"最新区块号: {latest_block_number}, 交易数量: {tx_count}")
 
     except Exception as e:
         print(e)
