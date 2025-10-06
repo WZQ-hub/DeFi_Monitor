@@ -151,6 +151,19 @@ PAIR_ABI = [
 ERC20_ABI = [
     {
         "inputs": [],
+        "name": "decimals",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "symbol",
         "outputs": [
             {
@@ -164,12 +177,12 @@ ERC20_ABI = [
     },
     {
         "inputs": [],
-        "name": "decimals",
+        "name": "name",
         "outputs": [
             {
-                "internalType": "uint8",
+                "internalType": "string",
                 "name": "",
-                "type": "uint8"
+                "type": "string"
             }
         ],
         "stateMutability": "view",
@@ -195,8 +208,8 @@ def get_factory(w3: Web3) -> Contract:
 def safe_call(fn, default=None):
     try:
         return fn()
-    except Exception:
-        logger.debug(f'Exception while calling function: {fn}')
+    except Exception as e:
+        logger.warning('safe_call fallback: %s', e)
         return default
 
 
@@ -206,8 +219,8 @@ def fetch_token_meta(w3: Web3, address: str) -> dict[str, Any]:
         return _TOKEN_META[address]
 
     contract = w3.eth.contract(address = address, abi = ERC20_ABI)
-    symbol = safe_call(contract.functions.symbol().call(), 'UNKNOWN')
-    decimals = safe_call(contract.functions.decimals().call(), 18)
+    symbol = safe_call(lambda: contract.functions.symbol().call(), 'UNKNOWN')
+    decimals = safe_call(lambda: contract.functions.decimals().call(), 18)
     meta = {'symbol': symbol, 'decimals': int(decimals)}
 
     _TOKEN_META[address] = meta
@@ -228,7 +241,7 @@ def fetch_pair_by_index(w3: Web3, factory: Contract, index: int) -> Optional[Dic
     reserve0, reserve1, token0_fee_percent, token1_fee_percent = pair_contract.functions.getReserves().call()
     token0 = pair_contract.functions.token0().call()
     token1 = pair_contract.functions.token1().call()
-    pair_symbol = safe_call(pair_contract.functions.symbol().call(), 'UNKNOWN')
+    pair_symbol = safe_call(lambda: pair_contract.functions.symbol().call(), 'UNKNOWN')
     token0_meta = fetch_token_meta(w3, token0)
     token1_meta = fetch_token_meta(w3, token1)
     return {
