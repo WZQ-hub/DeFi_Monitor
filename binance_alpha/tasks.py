@@ -126,4 +126,5 @@ def save_token_info(self):
                 logger.info(f"更新代币记录: {obj.symbol}")
         except Exception as e:
             logger.error(f"保存代币信息失败，错误信息：{e}")
-    return saved
+
+
