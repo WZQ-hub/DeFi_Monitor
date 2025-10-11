@@ -11,7 +11,7 @@ logging.config.dictConfig(LOGGING)
 logger = logging.getLogger(__name__)
 
 
-REQUEST_URL = "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list"
+REQUEST_URL_TOKEN = "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list"
 REQUEST_TIMEOUT = 10
 
 
@@ -21,7 +21,7 @@ def get_binance_alpha_token_list():
     返回 data 列表；若失败返回 None。
     '''
     try:
-        response = requests.request("GET", REQUEST_URL, timeout=REQUEST_TIMEOUT)
+        response = requests.request("GET", REQUEST_URL_TOKEN, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         api_data = response.json()
 
