@@ -22,7 +22,7 @@ def get_alpha_params():
     try:
         tokenId = alpha.objects.get(id = 3).tokenId
         params = {
-            "symbol": tokenId,
+            "symbol": f"{tokenId}USDT",
             "limit": 5  # 限制返回结果数量为1 (默认为500，最大1000)
         }
         response = requests.get(url = URL, params = params)
@@ -33,3 +33,6 @@ def get_alpha_params():
             logger.info(f"成功获取到 {tokenId} 的最新价格信息，并存储到 Redis 中。")
     except Exception as e:
         logger.error(f"获取 {tokenId} 价格信息失败，错误信息：{e}")
+
+
+

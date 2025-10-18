@@ -1,6 +1,8 @@
 import logging.config
 import logging
 import requests
+from django.db import transaction
+
 from Defi_Monitor.settings import LOGGING
 from binance_alpha.models import alpha
 from celery import shared_task
@@ -55,23 +57,24 @@ def _to_number(val, default=0):
         return default
 
 
-def get_top10_and_high_mulPoint():
+def get_4xPoint_token():
     '''
-    获取前10名且高倍数（按 mulPoint 降序、再按 24h 交易量降序）的代币信息
+    获取积分为4的代币列表
     '''
     token_list = get_binance_alpha_token_list()
     if not token_list:
         logger.error("未能获取到代币列表，无法继续处理。")
         return None
 
-    # 按照 mulPoint 降序排序，转换为数字更稳健
-    sorted_tokens = sorted(token_list, key=lambda x: _to_number(x.get('mulPoint')), reverse=True)
+    # 过滤出 mulPoint 为 4 的代币
+    filter_4x_tokens = [token for token in token_list if _to_number(token.get("mulPoint")) == 4]
+    logger.info(f"筛选出积分为4的代币，共计 {len(filter_4x_tokens)} 个。")
+    # 按照 交易量降序排序，转换为数字更稳健
+    sorted_tokens = sorted(filter_4x_tokens, key=lambda x: _to_number(x.get('volume24h')), reverse=True)
     top10_tokens = sorted_tokens[:10]
+    logger.info("获取到积分为4的前10个代币。")
 
-    # 再按 24h 交易量降序返回
-    top10 = sorted(top10_tokens, key=lambda x: _to_number(x.get('volume24h')), reverse=True)
-
-    return top10
+    return top10_tokens
 
 
 @shared_task(
@@ -88,12 +91,14 @@ def save_token_info(self):
     保存代币信息到数据库（Celery 任务）。
     成功返回保存/更新的记录数；失败时抛出异常以触发自动重试。
     '''
-    token_info = get_top10_and_high_mulPoint()
+    token_info = get_4xPoint_token()
     if not token_info:
         # 抛异常以触发自动重试
         raise RuntimeError("未能获取到代币信息，触发重试。")
 
     saved = 0
+    delete, _ = alpha.objects.all().delete()
+    logger.info(f"开始删除数据库中旧数据, 共删除 {delete} 条记录。")
     for token in token_info:
         try:
             # 规范化字段值
@@ -105,7 +110,9 @@ def save_token_info(self):
             except (TypeError, ValueError):
                 mul_point = 0
 
-            obj, created = alpha.objects.update_or_create(
+            with transaction.atomic():
+
+                obj, created = alpha.objects.update_or_create(
                 tokenId=token_id,
                 chainName=chain_name,
                 contractAddress=contract_addr,
